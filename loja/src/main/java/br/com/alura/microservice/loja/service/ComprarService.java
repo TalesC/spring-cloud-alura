@@ -7,7 +7,9 @@ import org.springframework.stereotype.Service;
 
 import br.com.alura.microservice.loja.client.FornecedorClient;
 import br.com.alura.microservice.loja.controller.dto.CompraDTO;
+import br.com.alura.microservice.loja.model.Compra;
 import br.com.alura.microservice.loja.service.dto.InfoFornecedorDTO;
+import br.com.alura.microservice.loja.service.dto.InfoPedidoDTO;
 
 @Service
 public class ComprarService {
@@ -15,10 +17,13 @@ public class ComprarService {
 	@Autowired
 	private FornecedorClient fornecedorClient;
 	
-	public void realizaCompra(CompraDTO compra) {
-		List<InfoFornecedorDTO> info = fornecedorClient.getInfoPorEstado(compra.getEndereco().getEstado());		
+	public Compra realizaCompra(CompraDTO compra) {
+		List<InfoFornecedorDTO> info = fornecedorClient.getInfoPorEstado(compra.getEndereco().getEstado());
 		
-		System.out.println(info.get(0).getEndereco());
+		InfoPedidoDTO pedido = fornecedorClient.realizaPedido(compra.getItens());
+		
+		return new Compra(pedido.getId(), pedido.getTempoDePreparo(), compra.getEndereco().toString());
+		
 	}
 
 }

@@ -1,14 +1,12 @@
 package br.com.alura.microservice.fornecedor.repository;
 
-import java.util.List;
-
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
 import br.com.alura.microservice.fornecedor.model.InfoFornecedor;
 
 @Repository
-public interface InfoRepository extends CrudRepository<InfoFornecedor, Long> {
+public interface InfoRepository extends CrudRepository<InfoFornecedor, Long>{
 
-	List<InfoFornecedor> findByEstado(String estado);
+	InfoFornecedor findByEstado(String estado);
 }
