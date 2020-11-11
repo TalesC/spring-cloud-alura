@@ -1,7 +1,7 @@
 package br.com.alura.microservice.loja.service;
 
-import java.util.List;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -14,15 +14,22 @@ import br.com.alura.microservice.loja.service.dto.InfoPedidoDTO;
 @Service
 public class ComprarService {
 	
+	private static final Logger LOG = LoggerFactory.getLogger(ComprarService.class);
+	
 	@Autowired
 	private FornecedorClient fornecedorClient;
 	
 	public Compra realizaCompra(CompraDTO compra) {
-		List<InfoFornecedorDTO> info = fornecedorClient.getInfoPorEstado(compra.getEndereco().getEstado());
 		
+		final String estado =  compra.getEndereco().toString();
+		
+		LOG.info("buscando informação do fornecedor de {}", estado);
+		InfoFornecedorDTO info = fornecedorClient.getInfoPorEstado(compra.getEndereco().getEstado());
+		
+		LOG.info("realizando um  pedido", estado);
 		InfoPedidoDTO pedido = fornecedorClient.realizaPedido(compra.getItens());
 		
-		return new Compra(pedido.getId(), pedido.getTempoDePreparo(), compra.getEndereco().toString());
+		return new Compra(pedido.getId(), pedido.getTempoDePreparo(), info.getEndereco());
 		
 	}
 
