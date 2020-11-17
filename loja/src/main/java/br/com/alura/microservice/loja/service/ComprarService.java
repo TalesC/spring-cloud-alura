@@ -10,6 +10,7 @@ import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
 import br.com.alura.microservice.loja.client.FornecedorClient;
 import br.com.alura.microservice.loja.controller.dto.CompraDTO;
 import br.com.alura.microservice.loja.model.Compra;
+import br.com.alura.microservice.loja.repository.CompraRepository;
 import br.com.alura.microservice.loja.service.dto.InfoFornecedorDTO;
 import br.com.alura.microservice.loja.service.dto.InfoPedidoDTO;
 
@@ -21,7 +22,15 @@ public class ComprarService {
 	@Autowired
 	private FornecedorClient fornecedorClient;
 	
-	@HystrixCommand(fallbackMethod = "realizaCompraFallback")
+	@Autowired
+	private CompraRepository compraRepository;
+	
+	@HystrixCommand(threadPoolKey = "getByIdThreadPool")
+	public Compra getById(Long id) {
+		return compraRepository.findById(id).orElse(null);
+	}
+	
+	@HystrixCommand(fallbackMethod = "realizaCompraFallback", threadPoolKey = "realizaCompraThreadPool")
 	public Compra realizaCompra(CompraDTO compra) {
 		
 		final String estado =  compra.getEndereco().toString();
@@ -32,15 +41,11 @@ public class ComprarService {
 		LOG.info("realizando um  pedido", estado);
 		InfoPedidoDTO pedido = fornecedorClient.realizaPedido(compra.getItens());
 		
-		try {
-			Thread.sleep(2000);
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+	
+		Compra compraSalva = new Compra(pedido.getId(), pedido.getTempoDePreparo(), info.getEndereco());
+		compraRepository.save(compraSalva);
 		
-		return new Compra(pedido.getId(), pedido.getTempoDePreparo(), info.getEndereco());
-		
+		return compraSalva;
 	}
 	
 	public Compra realizaCompraFallback(CompraDTO compra) {
